@@ -1,4 +1,4 @@
-# Hapi Demo Repo with swagger ui and bookshelf.js
+# Hapi Demo Repo for 8.0.0-rc4
 =======================
 
 install npm dependencies
