@@ -1,56 +1,59 @@
+// hack from https://gist.github.com/branneman/8048520
+process.env.NODE_PATH = __dirname + '/plugins';
+require('module').Module._initPaths();
+
 var path = require('path');
 var Hapi = require('hapi');
+var Glue = require('glue');
 var _ = require('lodash');
-var pack = new Hapi.Pack();
 
 var manifest = {
-  servers: [
-  {
-    host: 'localhost',
-    port:8000,
-    options: {
-      labels: 'api',
-      cors: true
+  server: {
+    cache: 'catbox-memory',
+    app: {
+      'app-specific': 'value'
     }
   },
-  {
-    host: 'localhost',
-    port: 8001,
-    options: {
-      labels: 'web',
-      state: {
-        cookies: {
-          clearInvalid: true
-        }
-      }
+  connections: [
+    {
+      host: 'localhost',
+      port: 8001,
+      labels: ['api']
+    },
+    {
+      host: 'localhost',
+      port: '8000',
+      labels: ['web']
     }
-  }
   ],
   plugins: {
-    // "lout": {}
-    'hapi-swagger':  {
-      select: 'api',
-      // basePath: server.info.uri,
-      endpoint: '/docs',
-      pathPrefixSize: 1,
-      apiVersion: 1,
-      auth: false,
-      payloadType: 'form',
-      enableDocumentationPage: false
-    },
-    "plugins/documentation":{}
-
-
-
-
+    "api_test": [
+      {
+        select: 'api',
+        routes: {
+          prefix: '/api'
+        }
+      }
+    ],
+    "web_test": [
+    {
+      select: 'web'
+    }
+    ]
   }
 };
 
-Hapi.Pack.compose(manifest, function(err, pack) {
-  pack.start(function() {
-    var server_info = _.map(pack.servers, function(server){
-      return  server.settings.labels.join(', ') + ': ' + server.info.uri;
+Glue.compose(manifest, function (err, server) {
+  server.start(function (err) {
+    var server_info = _.map(server.connections, function(connection){
+      return  [
+        connection.settings.labels.join(', '),
+        ': ',
+        connection.info.uri,
+        ' with plugins ',
+        _.keys(connection._registrations).join(', ')
+      ].join('');
     });
-    console.log("Hapi version:", pack.hapi.version, "started with plugins:", _.keys(pack.plugins).join(', '), '\nserver info:', server_info);
+    console.log("Hapi version:", server.version, "started with servers: \n", server_info.join('\n '));
   });
 });

@@ -83,7 +83,7 @@ exports.register = function (plugin, options, next) {
 
   exports.register.attributes = {
     pkg: {
-      "name": "testplugin",
+      "name": "api_test",
       "version": "0.0.1",
       "description": "example test feature for sample Hapi app",
       "main": "index.js"
